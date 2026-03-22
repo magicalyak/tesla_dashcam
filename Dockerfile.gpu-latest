@@ -2,12 +2,14 @@ FROM python:3-slim
 
 WORKDIR /usr/src/app/tesla_dashcam
 
-# Install FFmpeg with VAAPI support and other dependencies
-RUN apt-get update -y \
+# Install FFmpeg with GPU support using Debian unstable for latest version
+# This gets FFmpeg 8.0+ instead of 7.1.2 from stable
+RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list \
+    && apt-get update -y \
     && apt-get install -y --no-install-recommends \
-    # FFmpeg with VAAPI support
+    # FFmpeg with GPU support (from unstable/sid for latest version)
     ffmpeg \
-    # VAAPI runtime libraries
+    # VAAPI runtime libraries (for Intel and AMD GPUs)
     libva2 \
     libva-drm2 \
     i965-va-driver \
@@ -17,11 +19,7 @@ RUN apt-get update -y \
     # Application dependencies
     fonts-freefont-ttf \
     libnotify-bin \
-    dbus \
-    # ASS subtitle support for SEI telemetry overlay
-    libass9 \
-    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/* \
-    && dbus-uuidgen > /var/lib/dbus/machine-id
+    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 # Install tesla_dashcam
 RUN pip install --no-cache-dir tesla_dashcam
